@@ -1,0 +1,27 @@
+[project]
+name = "weread-exporter"
+version = "1.0.0"
+description = "Export weread books to epub/pdf/mobi format."
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [{ name = "drunkdream", email = "drunkdream@qq.com" }]
+dependencies = [
+  "aiohttp",
+  "beautifulsoup4",
+  "ebooklib",
+  "markdown",
+  "pyppeteer",
+  "weasyprint==52.5",
+  "Pillow; sys_platform == 'win32'",
+]
+
+[project.scripts]
+weread-exporter = "weread_exporter.__main__:main"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "black", "flake8", "mypy"]
+build = ["pyinstaller"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
