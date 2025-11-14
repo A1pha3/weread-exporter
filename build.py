@@ -53,7 +53,7 @@ VSVersionInfo(
 
 
 def build_by_pyinstaller(platform, version):
-    os.system("python -m pip install pyinstaller")
+    os.system("uv sync --extra build")
     version_items = version.split(".")
     for i in range(len(version_items)):
         version_items[i] = int(version_items[i])
@@ -85,12 +85,12 @@ if __name__ == "__main__":
         with open(version_file, "w") as fp:
             fp.write(text)
         cmdline = (
-            "python -m PyInstaller -F -c %s -n weread-exporter --version-file %s  --add-data weread_exporter/hook.js;weread_exporter --add-data weread_exporter/style.css;weread_exporter --add-data weread_exporter/epub.css;weread_exporter --add-data weread_exporter/bin/%s;weread_exporter/bin/%s"
+            "uv run pyinstaller -F -c %s -n weread-exporter --version-file %s  --add-data weread_exporter/hook.js;weread_exporter --add-data weread_exporter/style.css;weread_exporter --add-data weread_exporter/epub.css;weread_exporter --add-data weread_exporter/bin/%s;weread_exporter/bin/%s"
             % (main_file, version_file, sys.platform, sys.platform)
         )
     else:
         cmdline = (
-            "python -m PyInstaller -F -w %s -n weread-exporter --add-data weread_exporter/hook.js:weread_exporter --add-data weread_exporter/style.css:weread_exporter --add-data weread_exporter/epub.css:weread_exporter --add-data weread_exporter/bin/%s:weread_exporter/bin/%s"
+            "uv run pyinstaller -F -w %s -n weread-exporter --add-data weread_exporter/hook.js:weread_exporter --add-data weread_exporter/style.css:weread_exporter --add-data weread_exporter/epub.css:weread_exporter --add-data weread_exporter/bin/%s:weread_exporter/bin/%s"
             % (main_file, sys.platform, sys.platform)
         )
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
 
 def build(backend, version):
-    os.system("python -m pip install -r requirements.txt")
+    os.system("uv sync")
 
     platform = "win32"
     if sys.platform == "linux2":
