@@ -2,8 +2,6 @@
 
 import setuptools
 
-import weread_exporter
-
 with open("README.md", "rb") as fp:
     README = fp.read().decode()
 
@@ -11,6 +9,11 @@ with open("README.md", "rb") as fp:
 with open("requirements.txt") as fp:
     text = fp.read()
     REQUIREMENTS = text.split("\n")
+
+version_ns = {}
+with open("weread_exporter/__init__.py", "r") as fp:
+    exec(fp.read(), version_ns)
+PACKAGE_VERSION = version_ns.get("VERSION", "0.0.0")
 
 
 def find_packages():
@@ -28,7 +31,7 @@ setuptools.setup(
     name="weread-exporter",
     license="MIT",
     description="Export weread books to epub/pdf/mobi format.",
-    version=weread_exporter.VERSION,
+    version=PACKAGE_VERSION,
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/drunkdream/weread-exporter",
