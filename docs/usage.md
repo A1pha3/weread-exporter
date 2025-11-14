@@ -47,24 +47,20 @@ open output/书籍名称.epub
 
 ### 基本参数
 
-| 参数 | 简写 | 说明 | 示例 |
-|------|------|------|------|
-| `--book-id` | `-b` | 书籍ID（必填） | `-b 08232ac0720befa90825d88` |
-| `--output-format` | `-o` | 输出格式（可重复） | `-o epub -o pdf` |
-| `--output-dir` | `-d` | 输出目录 | `-d ~/Documents/books` |
-| `--help` | `-h` | 显示帮助信息 | `-h` |
-| `--version` | `-v` | 显示版本信息 | `-v` |
+| 参数 | 简写 | 说明 | 默认值 | 示例 |
+|------|------|------|--------|------|
+| `--book-id` | `-b` | 书籍ID（必填） | 无 | `-b 08232ac0720befa90825d88` |
+| `--output-format` | `-o` | 输出格式（可重复） | epub | `-o epub -o pdf` |
+| `--load-timeout` | 无 | 章节加载超时时间（秒） | 60 | `--load-timeout 120` |
+| `--load-interval` | 无 | 章节加载间隔时间（秒） | 30 | `--load-interval 10` |
+| `--css-file` | 无 | 自定义CSS样式文件 | 无 | `--css-file custom.css` |
+| `--headless` | 无 | 无头模式（不显示浏览器） | False | `--headless` |
+| `--force-login` | 无 | 强制登录微信读书 | False | `--force-login` |
+| `--use-default-profile` | 无 | 使用默认浏览器配置 | False | `--use-default-profile` |
+| `--mock-user-agent` | 无 | 模拟用户代理 | False | `--mock-user-agent` |
+| `--proxy-server` | 无 | 代理服务器 | 无 | `--proxy-server http://proxy:8080` |
+| `--help` | `-h` | 显示帮助信息 | 无 | `-h` |
 
-### 高级参数
-
-| 参数 | 说明 | 默认值 | 示例 |
-|------|------|--------|------|
-| `--load-timeout` | 章节加载超时时间（秒） | 60 | `--load-timeout 120` |
-| `--load-interval` | 章节加载间隔时间（秒） | 30 | `--load-interval 10` |
-| `--css-file` | 自定义CSS样式文件 | 无 | `--css-file custom.css` |
-| `--headless` | 无头模式（不显示浏览器） | False | `--headless` |
-| `--force-login` | 强制登录微信读书 | False | `--force-login` |
-| `--proxy-server` | 代理服务器 | 无 | `--proxy-server http://proxy:8080` |
 
 ## 使用示例
 
@@ -74,8 +70,8 @@ open output/书籍名称.epub
 # 同时导出EPUB、PDF和MOBI格式
 weread-exporter -b 08232ac0720befa90825d88 -o epub -o pdf -o mobi
 
-# 指定输出目录
-weread-exporter -b 08232ac0720befa90825d88 -o epub -d ~/Documents/books
+# 使用无头模式导出
+weread-exporter -b 08232ac0720befa90825d88 -o epub --headless
 ```
 
 ### 示例2：使用高级配置

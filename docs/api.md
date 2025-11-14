@@ -14,13 +14,13 @@
 
 ```python
 class WeReadExporter:
-    def __init__(self, book_id: str, config: Optional[Dict] = None):
+    def __init__(self, page, save_path):
         """
         初始化导出器
         
         Args:
-            book_id: 书籍ID
-            config: 配置字典，可选
+            page: WeReadWebPage实例
+            save_path: 保存路径
         """
 ```
 
@@ -47,18 +47,13 @@ config = {
 ##### export()
 
 ```python
-async def export(self, 
-                formats: List[str] = ['epub'],
-                callback: Optional[Callable] = None) -> ExportResult:
+async def export_markdown(self, load_timeout=60, load_interval=30):
     """
-    导出书籍
+    导出Markdown格式内容
     
     Args:
-        formats: 输出格式列表，支持['epub', 'pdf', 'mobi', 'txt', 'md']
-        callback: 进度回调函数
-    
-    Returns:
-        ExportResult: 导出结果对象
+        load_timeout: 章节加载超时时间（秒）
+        load_interval: 章节加载间隔时间（秒）
     """
 ```
 

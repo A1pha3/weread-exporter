@@ -8,3 +8,4 @@ output/
 *.log
 *.egg-info/
 .venv/
+.trae/

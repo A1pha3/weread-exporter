@@ -68,6 +68,7 @@ weread-exporter -b 书籍ID -o epub -o pdf
 - **EbookLib** - EPUB格式生成
 - **WeasyPrint** - PDF格式渲染
 - **AIOHTTP** - 异步HTTP请求
+- **Markdown** - Markdown格式处理
 
 ## 📋 系统要求
 
