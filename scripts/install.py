@@ -20,13 +20,12 @@ def check_python_version():
 def install_requirements():
     """安装项目依赖。"""
     print("安装项目依赖...")
-    
+
     try:
-        # 使用pip安装requirements.txt中的依赖
         result = subprocess.run([
-            sys.executable, "-m", "pip", "install", "-r", "requirements.txt"
+            "uv", "sync"
         ], capture_output=True, text=True)
-        
+
         if result.returncode == 0:
             print("✓ 依赖安装成功")
             return True
@@ -41,29 +40,18 @@ def install_requirements():
 def install_development_deps():
     """安装开发依赖。"""
     print("安装开发依赖...")
-    
-    dev_deps = [
-        "pytest",
-        "pytest-cov",
-        "black",
-        "flake8",
-        "mypy"
-    ]
-    
+
     try:
-        for dep in dev_deps:
-            result = subprocess.run([
-                sys.executable, "-m", "pip", "install", dep
-            ], capture_output=True, text=True)
-            
-            if result.returncode == 0:
-                print(f"✓ 安装 {dep}")
-            else:
-                print(f"✗ 安装 {dep} 失败: {result.stderr}")
-                return False
-        
-        print("✓ 开发依赖安装成功")
-        return True
+        result = subprocess.run([
+            "uv", "sync", "--extra", "dev"
+        ], capture_output=True, text=True)
+
+        if result.returncode == 0:
+            print("✓ 开发依赖安装成功")
+            return True
+        else:
+            print(f"✗ 开发依赖安装失败: {result.stderr}")
+            return False
     except Exception as e:
         print(f"✗ 安装开发依赖过程中出现错误: {e}")
         return False
@@ -85,12 +73,12 @@ def setup_environment():
 def install_package():
     """以开发模式安装包。"""
     print("以开发模式安装包...")
-    
+
     try:
         result = subprocess.run([
-            sys.executable, "-m", "pip", "install", "-e", "."
+            "uv", "pip", "install", "-e", "."
         ], capture_output=True, text=True)
-        
+
         if result.returncode == 0:
             print("✓ 包安装成功")
             return True

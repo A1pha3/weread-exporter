@@ -13,7 +13,7 @@ def check_outdated_packages():
     
     try:
         result = subprocess.run([
-            sys.executable, "-m", "pip", "list", "--outdated"
+            "uv", "pip", "list", "--outdated"
         ], capture_output=True, text=True)
         
         if result.returncode == 0:
@@ -31,17 +31,25 @@ def check_outdated_packages():
 def update_package(package_name):
     """更新指定的包。"""
     print(f"更新包: {package_name}")
-    
+
     try:
-        result = subprocess.run([
-            sys.executable, "-m", "pip", "install", "--upgrade", package_name
+        add_result = subprocess.run([
+            "uv", "add", package_name
         ], capture_output=True, text=True)
-        
-        if result.returncode == 0:
+
+        if add_result.returncode != 0:
+            print(f"✗ 更新 {package_name} 失败: {add_result.stderr}")
+            return False
+
+        sync_result = subprocess.run([
+            "uv", "sync"
+        ], capture_output=True, text=True)
+
+        if sync_result.returncode == 0:
             print(f"✓ 成功更新 {package_name}")
             return True
         else:
-            print(f"✗ 更新 {package_name} 失败: {result.stderr}")
+            print(f"✗ 同步依赖失败: {sync_result.stderr}")
             return False
     except Exception as e:
         print(f"✗ 更新 {package_name} 过程中出现错误: {e}")
@@ -51,21 +59,26 @@ def update_package(package_name):
 def update_all_packages():
     """更新所有依赖包。"""
     print("更新所有依赖包...")
-    
+
     try:
-        # 读取requirements.txt
-        with open("requirements.txt", "r") as f:
-            requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-        
-        success_count = 0
-        for req in requirements:
-            # 提取包名（忽略版本约束）
-            package_name = req.split("==")[0].split(">=")[0].split("<=")[0]
-            if update_package(package_name):
-                success_count += 1
-        
-        print(f"\n更新完成: {success_count}/{len(requirements)} 个包成功更新")
-        return success_count == len(requirements)
+        lock_result = subprocess.run([
+            "uv", "lock", "--upgrade"
+        ], capture_output=True, text=True)
+
+        if lock_result.returncode != 0:
+            print(f"✗ 生成锁文件失败: {lock_result.stderr}")
+            return False
+
+        sync_result = subprocess.run([
+            "uv", "sync"
+        ], capture_output=True, text=True)
+
+        if sync_result.returncode == 0:
+            print("✓ 所有依赖已升级并同步")
+            return True
+        else:
+            print(f"✗ 同步依赖失败: {sync_result.stderr}")
+            return False
     except Exception as e:
         print(f"更新过程中出现错误: {e}")
         return False
@@ -74,20 +87,17 @@ def update_all_packages():
 def update_requirements_file():
     """更新requirements.txt文件。"""
     print("更新requirements.txt文件...")
-    
+
     try:
-        # 获取当前安装的包版本
         result = subprocess.run([
-            sys.executable, "-m", "pip", "freeze"
+            "uv", "export", "-o", "requirements.txt"
         ], capture_output=True, text=True)
-        
+
         if result.returncode == 0:
-            with open("requirements.txt", "w") as f:
-                f.write(result.stdout)
-            print("✓ requirements.txt 已更新")
+            print("✓ requirements.txt 已根据锁文件导出")
             return True
         else:
-            print("✗ 获取包列表失败")
+            print(f"✗ 导出失败: {result.stderr}")
             return False
     except Exception as e:
         print(f"✗ 更新requirements.txt过程中出现错误: {e}")
