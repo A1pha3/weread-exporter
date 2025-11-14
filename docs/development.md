@@ -16,39 +16,32 @@ ls -la
 ### 2. 创建虚拟环境
 
 ```bash
-# 创建Python虚拟环境
-python -m venv venv
+# 使用 uv 创建项目虚拟环境（默认 .venv）
+uv venv
 
-# 激活虚拟环境
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
+# 同步核心依赖
+uv sync
 ```
 
 ### 3. 安装开发依赖
 
 ```bash
-# 安装开发版本（包含所有依赖）
-pip install -e .[dev]
-
-# 或分别安装
-pip install -e .  # 核心依赖
-pip install pytest pytest-asyncio black flake8 mypy  # 开发工具
+# 同步开发分组依赖
+uv sync --extra dev
 ```
 
 ### 4. 验证开发环境
 
 ```bash
 # 运行测试
-pytest
+uv run pytest
 
 # 检查代码风格
-black --check .
-flake8 .
+uv run black --check .
+uv run flake8 .
 
 # 类型检查
-mypy weread_exporter/
+uv run mypy weread_exporter/
 ```
 
 ## 项目结构详解
@@ -382,12 +375,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.9'
-    - name: Install dependencies
-      run: pip install -e .[dev]
+    - name: Install uv and sync deps
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        uv sync --extra dev
     - name: Run tests
-      run: pytest
+      run: uv run pytest
     - name: Check code style
-      run: flake8 weread_exporter/
+      run: uv run flake8 weread_exporter/
 ```
 
 ## 高级开发技巧

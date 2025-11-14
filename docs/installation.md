@@ -23,7 +23,7 @@
 
 ### 1. 检查Python环境
 
-首先确认您的系统已安装Python 3.7或更高版本：
+首先确认您的系统已安装Python 3.7或更高版本，并安装 `uv`：
 
 ```bash
 # 检查Python版本
@@ -31,10 +31,8 @@ python --version
 # 或
 python3 --version
 
-# 检查pip版本
-pip --version
-# 或
-pip3 --version
+# 检查 uv 版本
+uv --version
 ```
 
 如果未安装Python，请根据您的操作系统选择安装方法：
@@ -77,56 +75,35 @@ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
 
 ## 安装方法
 
-### 方法一：从PyPI安装（推荐）
+### 方法一：使用 uv 从源码安装（推荐）
 
-这是最简单的安装方法，适合大多数用户：
-
-```bash
-# 使用pip安装最新稳定版
-pip install weread-exporter
-
-# 或使用pip3
-pip3 install weread-exporter
-
-# 如果遇到权限问题，使用用户安装
-pip install --user weread-exporter
-```
-
-### 方法二：从源码安装（开发版）
-
-如果您需要最新功能或参与开发：
+由于项目正在开发中，建议从源码安装：
 
 ```bash
 # 克隆项目仓库
 git clone https://github.com/drunkdream/weread-exporter.git
 cd weread-exporter
 
-# 安装开发版本
-pip install -e .
+# 同步核心依赖并准备环境
+uv sync
 
-# 或安装所有依赖（包括开发依赖）
-pip install -e .[dev]
+# 运行（无需额外安装）
+uv run weread-exporter --help
 ```
 
-### 方法三：使用虚拟环境（推荐）
+### 方法二：使用 uv 管理虚拟环境（强烈推荐）
 
 使用虚拟环境可以避免依赖冲突：
 
 ```bash
-# 创建虚拟环境
-python -m venv weread-env
+# 创建并使用项目虚拟环境（默认 .venv）
+uv venv
 
-# 激活虚拟环境
-# Windows
-weread-env\Scripts\activate
-# macOS/Linux
-source weread-env/bin/activate
+# 同步依赖
+uv sync
 
-# 在虚拟环境中安装
-pip install weread-exporter
-
-# 使用完成后退出虚拟环境
-deactivate
+# 运行工具
+uv run weread-exporter -b <书籍ID> -o epub
 ```
 
 ## 依赖管理
@@ -137,23 +114,28 @@ deactivate
 
 | 包名 | 版本 | 用途 |
 |------|------|------|
-| `pyppeteer` | >=1.0.2 | 浏览器自动化控制 |
-| `beautifulsoup4` | >=4.9.3 | HTML解析和处理 |
-| `ebooklib` | >=0.17.1 | EPUB格式生成 |
+| `pyppeteer` | 最新版本 | 浏览器自动化控制 |
+| `beautifulsoup4` | 最新版本 | HTML解析和处理 |
+| `ebooklib` | 最新版本 | EPUB格式生成 |
 | `weasyprint` | ==52.5 | PDF格式生成 |
-| `aiohttp` | >=3.8.1 | 异步HTTP请求 |
-| `markdown` | >=3.3.4 | Markdown格式处理 |
+| `aiohttp` | 最新版本 | 异步HTTP请求 |
+| `markdown` | 最新版本 | Markdown格式处理 |
 
 ### 可选依赖
 
 某些功能需要额外依赖：
 
 ```bash
-# 如果需要MOBI格式支持（仅Windows）
-pip install Pillow
+# 如果需要MOBI格式支持（仅Windows，按需安装）
+uv add Pillow
 
-# 如果需要开发工具
-pip install pytest pytest-asyncio black flake8
+# 开发工具（一次性同步）
+uv sync --extra dev
+
+# 运行开发工具示例
+uv run pytest
+uv run black --check .
+uv run flake8 .
 ```
 
 ## 浏览器配置
@@ -198,10 +180,10 @@ export CHROMIUM_PATH="/usr/bin/google-chrome"
 
 ```bash
 # 检查命令行工具是否可用
-weread-exporter --version
+uv run weread-exporter --version
 
 # 或使用Python模块方式
-python -m weread_exporter --help
+uv run python -m weread_exporter --help
 ```
 
 ### 2. 运行简单测试
@@ -312,11 +294,11 @@ export HTTPS_PROXY="http://proxy.example.com:8080"
 如果遇到网络连接问题：
 
 ```bash
-# 使用国内镜像源
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple weread-exporter
+# 使用国内镜像源安装/同步
+UV_PYPI_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple uv sync
 
 # 或使用阿里云镜像
-pip install -i https://mirrors.aliyun.com/pypi/simple/ weread-exporter
+UV_PYPI_INDEX=https://mirrors.aliyun.com/pypi/simple/ uv sync
 ```
 
 ### 系统特定问题
