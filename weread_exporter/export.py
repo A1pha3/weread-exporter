@@ -9,7 +9,6 @@ import bs4
 import markdown
 
 from ebooklib import epub
-from weasyprint import HTML, CSS
 
 from . import utils
 
@@ -154,6 +153,7 @@ class WeReadExporter(object):
     async def markdown_to_pdf(
         self, save_path, extra_css=None, image_format="jpg", dump_html=False
     ):
+        from weasyprint import HTML, CSS
         meta_data = await self._load_meta_data()
         raw_html = '<img src="cover.jpg" style="width: 100%;">\n'
         for index, chapter in enumerate(meta_data["chapters"]):
