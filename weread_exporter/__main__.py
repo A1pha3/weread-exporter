@@ -76,6 +76,12 @@ async def async_main():
         "--proxy-server",
         help="http proxy server, e.g. http://127.0.0.1:8888",
     )
+    parser.add_argument(
+        "--list-ids",
+        help="list book ids from booklist",
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
     args.output_format = args.output_format or ["epub"]
     if "mobi" in args.output_format and "epub" not in args.output_format:
@@ -90,6 +96,10 @@ async def async_main():
 
     if "_" in args.book_id:
         # book list id
+        if args.list_ids:
+            for it in await utils.get_book_list_full(args.book_id):
+                print("%s\t%s\t%s" % (it["title"], it["original_id"], it["hashed_id"]))
+            return 0
         book_list = [it["id"] for it in await utils.get_book_list(args.book_id)]
     else:
         book_list = [args.book_id]

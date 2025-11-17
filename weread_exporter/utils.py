@@ -75,6 +75,40 @@ async def get_book_list(book_list_id):
     return book_list
 
 
+async def get_book_list_full(book_list_id):
+    """
+    获取书单内所有书籍的原始ID与哈希ID
+    参数：
+        book_list_id: 书单ID（URL中 misc/booklist/<id>）
+    返回：
+        List[Dict]: [{"original_id": "...", "hashed_id": "...", "title": "..."}]
+    """
+    results = []
+    url = "https://weread.qq.com/misc/booklist/" + book_list_id
+    html = await fetch(url)
+    html = html.decode()
+    pos = html.find("window.__NUXT__")
+    if pos <= 0:
+        raise RuntimeError("Unexpected html: %s" % html)
+    pos = html.find("bookEntities:", pos)
+    while True:
+        if results:
+            pos = html.find('},"', pos)
+            if pos < 0:
+                break
+        pos = html.find('"', pos)
+        pos1 = html.find('"', pos + 1)
+        original_id = html[pos + 1 : pos1]
+        pos = html.find("title:", pos)
+        pos = html.find('"', pos)
+        pos1 = html.find('"', pos + 1)
+        title = html[pos + 1 : pos1]
+        results.append(
+            {"original_id": original_id, "hashed_id": wr_hash(original_id), "title": title}
+        )
+    return results
+
+
 def format_filename(filename):
     for c in ("/", "\\", ":"):
         filename = filename.replace(c, "%%%.2x" % ord(c))
