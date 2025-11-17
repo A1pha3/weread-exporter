@@ -59,6 +59,7 @@ open output/书籍名称.epub
 | `--use-default-profile` | 无 | 使用默认浏览器配置 | False | `--use-default-profile` |
 | `--mock-user-agent` | 无 | 模拟用户代理 | False | `--mock-user-agent` |
 | `--proxy-server` | 无 | 代理服务器 | 无 | `--proxy-server http://proxy:8080` |
+| `--list-ids` | 无 | 从书单打印全部书籍ID（书名/原始ID/哈希ID） | 无 | `-b <booklistId> --list-ids` |
 | `--help` | `-h` | 显示帮助信息 | 无 | `-h` |
 
 
@@ -379,3 +380,11 @@ weread-exporter -b 08232ac0720befa90825d88 -o epub --log-file export.log
 ---
 
 **遇到使用问题？** 查看[故障排除指南](troubleshooting.md)获取解决方案！ 🔧
+### 示例4：从书单获取全部书籍ID
+
+```bash
+# 打印书单内所有书籍的 书名、原始ID、哈希ID
+python -m weread_exporter -b my_booklist_123 --list-ids
+```
+
+更多说明见 `docs/get-book-ids.md`。
