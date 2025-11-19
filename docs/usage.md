@@ -49,7 +49,7 @@ open output/书籍名称.epub
 
 | 参数 | 简写 | 说明 | 默认值 | 示例 |
 |------|------|------|--------|------|
-| `--book-id` | `-b` | 书籍ID（必填） | 无 | `-b 08232ac0720befa90825d88` |
+| `--book-id` | `-b` | 书籍ID（当不使用 `--list-booklists` 时必填） | 无 | `-b 08232ac0720befa90825d88` |
 | `--output-format` | `-o` | 输出格式（可重复） | epub | `-o epub -o pdf` |
 | `--load-timeout` | 无 | 章节加载超时时间（秒） | 60 | `--load-timeout 120` |
 | `--load-interval` | 无 | 章节加载间隔时间（秒） | 30 | `--load-interval 10` |
@@ -60,6 +60,7 @@ open output/书籍名称.epub
 | `--mock-user-agent` | 无 | 模拟用户代理 | False | `--mock-user-agent` |
 | `--proxy-server` | 无 | 代理服务器 | 无 | `--proxy-server http://proxy:8080` |
 | `--list-ids` | 无 | 从书单打印全部书籍ID（书名/原始ID/哈希ID） | 无 | `-b <booklistId> --list-ids` |
+| `--list-booklists` | 无 | 自动列出当前账号的书单（书单名/书单ID/URL） | 无 | `--list-booklists` |
 | `--help` | `-h` | 显示帮助信息 | 无 | `-h` |
 
 
@@ -388,3 +389,13 @@ python -m weread_exporter -b my_booklist_123 --list-ids
 ```
 
 更多说明见 `docs/get-book-ids.md`。
+
+### 示例5：自动获取书单ID
+
+```bash
+# 列出当前账号的所有书单（书单名、书单ID、URL）
+python -m weread_exporter --list-booklists
+
+# 选择某个书单，打印其中所有书籍ID
+python -m weread_exporter -b <booklistId> --list-ids
+```

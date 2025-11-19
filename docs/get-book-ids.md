@@ -52,6 +52,20 @@ if __name__ == "__main__":
     main()
 ```
 
+## 方法三：自动获取书单ID（无需手工找链接）
+- 列出当前账号的书单：
+```
+python -m weread_exporter --list-booklists
+```
+- 输出格式：
+```
+书单名<TAB>书单ID<TAB>URL
+```
+- 取其中一条的 `<booklistId>`，再运行：
+```
+python -m weread_exporter -b <booklistId> --list-ids
+```
+
 ## 获取书单ID
 - 在网页端打开你的书单页面：`https://weread.qq.com/misc/booklist/<booklistId>`。
 - `<booklistId>` 通常包含下划线 `_`，命令行检测到下划线会将其视为“书单ID”。
