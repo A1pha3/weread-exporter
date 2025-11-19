@@ -30,7 +30,7 @@ async def async_main():
     parser = argparse.ArgumentParser(
         prog="weread-exporter", description="WeRead book export cmdline tool"
     )
-    parser.add_argument("-b", "--book-id", help="book id", required=True)
+    parser.add_argument("-b", "--book-id", help="book id")
     parser.add_argument(
         "-o",
         "--output-format",
@@ -82,10 +82,42 @@ async def async_main():
         action="store_true",
         default=False,
     )
+    parser.add_argument(
+        "--list-booklists",
+        help="list booklists for current user",
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
     args.output_format = args.output_format or ["epub"]
     if "mobi" in args.output_format and "epub" not in args.output_format:
         args.output_format.append("epub")
+
+    if args.list_booklists:
+        # 列出书单列表，无需 book-id
+        page = webpage.WeReadWebPage(
+            "home",
+            cookie_path=os.path.join("cache", "cookie.txt"),
+            webcache_path="cache",
+        )
+        page._home_url = webpage.WeReadWebPage.root_url
+        try:
+            await page.launch(
+                headless=args.headless,
+                force_login=args.force_login,
+                use_default_profile=args.use_default_profile,
+                mock_user_agent=args.mock_user_agent,
+                proxy_server=args.proxy_server,
+            )
+            lists = await page.get_booklists()
+            for it in lists:
+                print("%s\t%s\t%s" % (it.get("title", ""), it["id"], it["url"]))
+        finally:
+            await page.close()
+        return 0
+
+    if not args.book_id:
+        raise RuntimeError("Missing required option: --book-id")
 
     extra_css = None
     if args.css_file:

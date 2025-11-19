@@ -40,10 +40,11 @@ class WeReadWebPage(object):
         self._url = ""
 
     async def get_book_info(self):
+        """获取书籍基本信息并解析章节结构"""
         html = (await utils.fetch(self._home_url)).decode()
         pos1 = html.find("window.__INITIAL_STATE__")
         if pos1 <= 0:
-            raise RuntimeError("Unexpected html: %s" % self._html)
+            raise RuntimeError("Unexpected html: %s" % html)
         pos1 = html.find("=", pos1)
         pos2 = html.find("};", pos1)
         data = html[pos1 + 1 : pos2 + 1].strip()
@@ -67,6 +68,60 @@ class WeReadWebPage(object):
                     chap["anchors"].append({"title": it["title"], "level": it["level"]})
             book_info["chapters"].append(chap)
         return book_info
+
+    async def get_booklists(self):
+        """
+        获取当前账号可见的书单列表
+        返回：
+            List[Dict]: [{"id": "<booklistId>", "title": "<书单名>", "url": "https://weread.qq.com/misc/booklist/<booklistId>"}]
+        """
+        await self._page.goto(self.__class__.root_url)
+        try:
+            await self.wait_for_avatar(timeout=15)
+        except Exception:
+            pass
+
+        async def _collect():
+            script = """
+            () => {
+              const anchors = Array.from(document.querySelectorAll('a'));
+              const res = [];
+              for (const a of anchors) {
+                const href = a.href || a.getAttribute('href') || '';
+                if (!href || href.indexOf('/misc/booklist/') === -1) continue;
+                const m = href.match(/misc\/booklist\/([^?#]+)/);
+                const id = m && m[1] ? m[1] : '';
+                if (!id) continue;
+                const title = (a.innerText || '').trim();
+                res.push({ id, title, url: href });
+              }
+              return res;
+            }
+            """
+            return await self._page.evaluate(script)
+
+        result = await _collect()
+        if result:
+            return result
+
+        try:
+            await self._page.evaluate(
+                """
+                () => {
+                  const anchors = Array.from(document.querySelectorAll('a'));
+                  for (const a of anchors) {
+                    const txt = (a.innerText || '').trim();
+                    if (txt.includes('书单')) { a.click(); return true; }
+                  }
+                  return false;
+                }
+                """
+            )
+            await asyncio.sleep(1)
+            result = await _collect()
+        except Exception:
+            pass
+        return result or []
 
     async def get_user_info(self):
         vid = self._cookie.get("wr_vid")
