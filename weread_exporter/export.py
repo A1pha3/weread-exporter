@@ -104,11 +104,12 @@ class WeReadExporter(object):
                 logging.info("[%s] Replace image %s" % (self.__class__.__name__, url))
                 try:
                     data = await utils.fetch(url)
-                except:
-                    logging.exception(
-                        "[%s] Fetch image data of %s failed"
-                        % (self.__class__.__name__, url)
+                except (asyncio.TimeoutError, RuntimeError) as e:
+                    logging.warning(
+                        "[%s] Failed to fetch image %s: %s"
+                        % (self.__class__.__name__, url, str(e))
                     )
+                    # 继续处理下一个图片
                     pos += 10
                 else:
                     image_name = utils.md5(url) + ".jpg"
@@ -352,10 +353,10 @@ class WeReadExporter(object):
                     raise utils.LoadChapterFailedError()
                 except KeyboardInterrupt as ex:
                     raise ex
-                except:
-                    logging.exception(
-                        "[%s] Go to chapter %s failed"
-                        % (self.__class__.__name__, chapter["title"])
+                except (asyncio.TimeoutError, RuntimeError) as e:
+                    logging.error(
+                        "[%s] Failed to navigate to chapter %s: %s"
+                        % (self.__class__.__name__, chapter["title"], str(e))
                     )
                 else:
                     break

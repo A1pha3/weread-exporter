@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import logging
 import random
@@ -35,7 +36,7 @@ async def fetch(url, method="GET", headers=None, data=None, respond_with_headers
         if data and not isinstance(data, bytes):
             data = data.encode("utf-8")
 
-        for _ in range(3):
+        for attempt in range(3):
             try:
                 async with method(url, headers=headers, data=data) as response:
                     #response.raise_for_status()
@@ -44,8 +45,13 @@ async def fetch(url, method="GET", headers=None, data=None, respond_with_headers
                         return response.status, response.headers, result
                     else:
                         return result
-            except:
-                logging.exception("Fetch url %s failed" % url)
+            except (aiohttp.ClientError, asyncio.TimeoutError, RuntimeError) as e:
+                logging.warning(
+                    "Failed to fetch URL %s (attempt %d/3): %s"
+                    % (url, attempt + 1, str(e))
+                )
+                if attempt == 2:  # 最后一次尝试失败
+                    raise RuntimeError("Fetch url %s failed after 3 attempts" % url)
         else:
             raise RuntimeError("Fetch url %s failed" % url)
 

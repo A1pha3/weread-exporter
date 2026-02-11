@@ -167,7 +167,12 @@ class WeReadWebPage(object):
             cookie = fp.read()
             try:
                 cookie = json.loads(cookie)
-            except:
+            except json.JSONDecodeError as e:
+                logging.warning(
+                    "[%s] Failed to parse cookie as JSON, falling back to legacy format: %s"
+                    % (self.__class__.__name__, str(e))
+                )
+                # 继续使用原有的分号分隔解析逻辑
                 for it in cookie.split(";"):
                     it = it.strip()
                     if "=" not in it:

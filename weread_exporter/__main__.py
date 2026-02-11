@@ -239,11 +239,12 @@ def main():
     asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(async_main())
-    except:
+    except Exception as e:
+        logging.error("Fatal error in main program: %s" % str(e))
         import traceback
 
         traceback.print_exc()
-        return
+        return 1  # 返回非零退出码
 
 
 if __name__ == "__main__":
