@@ -368,7 +368,7 @@ class WeReadWebPage(object):
 
     async def wait_for_selector(self, selector, timeout=30):
         try:
-            return await self._page.waitForSelector(selector, timeout=timeout)
+            return await self._page.waitForSelector(selector, timeout=timeout * 1000)
         except pyppeteer.errors.TimeoutError as ex:
             html = await self.get_html()
             html_path = "webpage.html"
@@ -639,7 +639,7 @@ class WeReadWebPage(object):
         while True:
             try:
                 await self.wait_for_selector(
-                    "button.readerFooter_button", timeout=60000
+                    "button.readerFooter_button", timeout=60
                 )
             except pyppeteer.errors.TimeoutError:
                 logging.info("[%s] load selector timeout " % self.__class__.__name__)
