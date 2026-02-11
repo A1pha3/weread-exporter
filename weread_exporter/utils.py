@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import logging
 import random
+from typing import Any, Tuple, Union, cast
 
 import aiohttp
 
@@ -22,25 +23,32 @@ class InvalidUserError(RuntimeError):
     pass
 
 
-def generate_user_agent():
+def generate_user_agent() -> str:
     user_agent_tmpl = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%d.0.0.0 Safari/537.36"
     return user_agent_tmpl % random.randint(90, 130)
 
 
-async def fetch(url, method="GET", headers=None, data=None, respond_with_headers=False):
-    headers = headers or {}
-    headers.pop("sec-ch-ua", None)
-    headers.pop("sec-ch-ua-platform", None)
+async def fetch(
+    url: str,
+    method: str = "GET",
+    headers: Any = None,
+    data: Any = None,
+    respond_with_headers: bool = False,
+) -> Union[bytes, Tuple[int, Any, bytes]]:
+    """Fetch URL, optionally with response headers."""
+    request_headers = headers or {}
+    request_headers.pop("sec-ch-ua", None)
+    request_headers.pop("sec-ch-ua-platform", None)
     async with aiohttp.ClientSession() as session:
-        method = getattr(session, method.lower())
+        http_method = getattr(session, method.lower())
+        request_data: Any = data
         if data and not isinstance(data, bytes):
-            data = data.encode("utf-8")
+            request_data = data.encode("utf-8")
 
         for attempt in range(3):
             try:
-                async with method(url, headers=headers, data=data) as response:
-                    #response.raise_for_status()
-                    result = await response.read()
+                async with http_method(url, headers=request_headers, data=request_data) as response:
+                    result: bytes = await response.read()
                     if respond_with_headers:
                         return response.status, response.headers, result
                     else:
@@ -50,20 +58,20 @@ async def fetch(url, method="GET", headers=None, data=None, respond_with_headers
                     "Failed to fetch URL %s (attempt %d/3): %s"
                     % (url, attempt + 1, str(e))
                 )
-                if attempt == 2:  # 最后一次尝试失败
-                    raise RuntimeError("Fetch url %s failed after 3 attempts" % url)
+                if attempt == 2:
+                    raise RuntimeError(f"Fetch url {url} failed after 3 attempts")
         else:
-            raise RuntimeError("Fetch url %s failed" % url)
+            raise RuntimeError(f"Fetch url {url} failed")
 
 
-async def get_book_list(book_list_id):
+async def get_book_list(book_list_id: str):
     book_list = []
     url = "https://weread.qq.com/misc/booklist/" + book_list_id
-    html = await fetch(url)
-    html = html.decode()
+    result = await fetch(url)
+    html: str = cast(bytes, result).decode()
     pos = html.find("window.__NUXT__")
     if pos <= 0:
-        raise RuntimeError("Unexpected html: %s" % html)
+        raise RuntimeError(f"Unexpected html for book list {book_list_id}")
     pos = html.find("bookEntities:", pos)
     while True:
         if book_list:
@@ -81,22 +89,15 @@ async def get_book_list(book_list_id):
     return book_list
 
 
-async def get_book_list_full(book_list_id):
-    """
-    获取书单内所有书籍的原始ID与哈希ID
-    参数：
-        book_list_id: 书单ID（URL中 misc/booklist/<id>）
-    返回：
-        List[Dict]: [{"original_id": "...", "hashed_id": "...", "title": "..."}]
-    """
+async def get_book_list_full(book_list_id: str):
+    """Get all books in a booklist with original and hashed IDs."""
     results = []
     url = "https://weread.qq.com/misc/booklist/" + book_list_id
-    html = await fetch(url)
-    html = html.decode()
+    result = await fetch(url)
+    html: str = cast(bytes, result).decode()
     pos = html.find("window.__NUXT__")
     if pos <= 0:
-        raise RuntimeError("Unexpected html: %s" % html)
-    pos = html.find("bookEntities:", pos)
+        raise RuntimeError(f"Unexpected html for book list {book_list_id}")
     while True:
         if results:
             pos = html.find('},"', pos)

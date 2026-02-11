@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+from typing import Any, cast
 
 import bs4
 import markdown
@@ -113,8 +114,9 @@ class WeReadExporter(object):
                     pos += 10
                 else:
                     image_name = utils.md5(url) + ".jpg"
+                    image_bytes: bytes = cast(bytes, await utils.fetch(url))
                     with open(os.path.join(self._image_dir, image_name), "wb") as fp:
-                        fp.write(data)
+                        fp.write(image_bytes)
                     output = output[: pos + 2] + "images/" + image_name + output[pos1:]
             if not os.path.isfile(chapter_path + ".bak"):
                 os.rename(chapter_path, chapter_path + ".bak")
@@ -166,11 +168,11 @@ class WeReadExporter(object):
         if image_format == "png":
             soup = bs4.BeautifulSoup(raw_html, features="html.parser")
             for img in soup.find_all("img"):
-                src = os.path.join(self._save_dir, img.attrs["src"])
+                src: str = str(img.attrs["src"])
                 if not src.endswith(".png"):
                     png_path = src[:-3] + "png"
                     utils.save_to_png(src, png_path)
-                    img.attrs["src"] = img.attrs["src"][:-3] + "png"
+                    img.attrs["src"] = src[:-3] + "png"
 
             raw_html = soup.prettify()
 
@@ -306,9 +308,9 @@ class WeReadExporter(object):
     async def save_cover_image(self):
         meta_data = await self._load_meta_data()
         cover_url = meta_data["cover"].replace("/s_", "/t9_")
-        data = await utils.fetch(cover_url)
+        cover_bytes: bytes = cast(bytes, await utils.fetch(cover_url))
         with open(self._cover_image_path, "wb") as fp:
-            fp.write(data)
+            fp.write(cover_bytes)
 
     async def export_markdown(self, timeout=60, interval=30):
         if not os.path.isdir(self._chapter_dir):

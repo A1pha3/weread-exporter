@@ -22,9 +22,13 @@ https://weread.qq.com/web/bookDetail/08232ac0720befa90825d88
 
 使用最简单的命令导出书籍：
 
+> **注意**: 如果您使用 `uv` 管理项目，请在命令前加上 `uv run`。
+
 ```bash
 # 导出为EPUB格式
 weread-exporter --book-id 08232ac0720befa90825d88 --output-format epub
+# 使用 uv 运行:
+# uv run weread-exporter --book-id 08232ac0720befa90825d88 --output-format epub
 
 # 或使用简写参数
 weread-exporter -b 08232ac0720befa90825d88 -o epub

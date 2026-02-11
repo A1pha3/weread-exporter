@@ -10,6 +10,7 @@ import random
 import sys
 import time
 import urllib.parse
+from typing import Any, cast
 
 import pyppeteer
 
@@ -41,7 +42,8 @@ class WeReadWebPage(object):
 
     async def get_book_info(self):
         """获取书籍基本信息并解析章节结构"""
-        html = (await utils.fetch(self._home_url)).decode()
+        result = await utils.fetch(self._home_url)
+        html: str = result.decode()
         pos1 = html.find("window.__INITIAL_STATE__")
         if pos1 <= 0:
             raise RuntimeError("Unexpected html: %s" % html)
@@ -129,8 +131,8 @@ class WeReadWebPage(object):
             raise utils.InvalidUserError("Invalid cookie: %s" % self._format_cookie())
         url = "%s/web/user?userVid=%s" % (self.__class__.root_url, vid)
         headers = {"Referer": self.__class__.root_url, "Cookie": self._format_cookie()}
-        rsp = await utils.fetch(url, headers=headers)
-        rsp = json.loads(rsp.decode())
+        rsp_bytes: bytes = cast(bytes, await utils.fetch(url, headers=headers))
+        rsp = json.loads(rsp_bytes.decode())
         if rsp.get("errCode") == -2012:
             _, rsp_headers, _ = await utils.fetch(
                 self.__class__.root_url, headers=headers, respond_with_headers=True
@@ -150,8 +152,8 @@ class WeReadWebPage(object):
                 )
             self._save_cookie()
             headers["Cookie"] = self._format_cookie()
-            rsp = await utils.fetch(url, headers=headers)
-            rsp = json.loads(rsp.decode())
+            rsp_bytes: bytes = cast(bytes, await utils.fetch(url, headers=headers))
+            rsp = json.loads(rsp_bytes.decode())
         elif rsp.get("errCode") == -2010:
             # 用户不存在
             raise utils.InvalidUserError("User %s not found" % vid)
@@ -208,12 +210,17 @@ class WeReadWebPage(object):
         self._cookie = await self._read_cookie()
 
     async def check_valid(self):
-        html = await utils.fetch(self._home_url)
-        if b'"soldout":1' in html:
+        html_bytes: bytes = cast(bytes, await utils.fetch(self._home_url))
+        if b'"soldout":1' in html_bytes:
             return False
         return True
 
     def _check_chrome(self):
+        if "CHROMIUM_PATH" in os.environ:
+            chrome = os.environ["CHROMIUM_PATH"]
+            if os.path.isfile(chrome):
+                return chrome
+
         path_list = os.environ["PATH"].split(";" if sys.platform == "win32" else ":")
         for chrome in ("chrome", "google-chrome"):
             if sys.platform == "win32":

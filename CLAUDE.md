@@ -19,7 +19,7 @@ The project follows a modular architecture with four main layers:
 
 - **WeReadWebPage**: Manages browser instances and page navigation using pyppeteer
 - **WeReadExporter**: Handles the export process and format conversions
-- **Canvas Hook**: JavaScript injection to intercept Canvas rendering operations
+- **Canvas Hook**: JavaScript injection to intercept Canvas rendering operations (see `hook.js`)
 - **Multi-format support**: EPUB (ebooklib), PDF (weasyprint), MOBI (requires Linux), TXT, Markdown
 
 ## Common Development Commands
@@ -34,17 +34,36 @@ weread-exporter -b <book-id> -o epub -o pdf
 # Run with specific options
 weread-exporter -b <book-id> --headless --load-timeout 120
 
-# Export from a book list
+# Export from a book list (auto-fetches book IDs)
+weread-exporter -b <booklist-id>
+
+# List book IDs from a book list
 weread-exporter -b <booklist-id> --list-ids
 
-# List available book lists
+# List available book lists for current user
 weread-exporter --list-booklists
 
-# Run tests
-python -m pytest tests/
+# Run tests (uses custom test runner)
+python scripts/test_runner.py
 
 # Build the package
 python setup.py sdist bdist_wheel
+
+# Build executable (requires pyinstaller)
+python scripts/build.py
+```
+
+## Code Quality Commands
+
+```bash
+# Format code with black
+black weread_exporter/
+
+# Lint with flake8
+flake8 weread_exporter/
+
+# Type checking with mypy
+mypy weread_exporter/
 ```
 
 ## Development Setup
@@ -58,22 +77,28 @@ python setup.py sdist bdist_wheel
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
+   # Or with dev dependencies:
+   pip install -e ".[dev]"
    ```
 
 3. The project uses:
    - pyppeteer for browser automation
    - beautifulsoup4 for HTML parsing
    - ebooklib for EPUB generation
-   - weasyprint for PDF rendering
+   - weasyprint for PDF rendering (pinned to 52.5)
    - aiohttp for async HTTP requests
 
 ## Important Implementation Details
 
 ### Canvas Hook Technology
-The core technology uses JavaScript Proxy objects to intercept Canvas drawing operations in the browser, allowing extraction of text content even when the original source is protected.
+The core technology uses JavaScript Proxy objects to intercept Canvas drawing operations in the browser, allowing extraction of text content even when the original source is protected. The hook script is embedded in `webpage.py` and injected at runtime.
 
 ### Async Architecture
-The entire system is built on asyncio for high-performance concurrent operations, especially when processing multiple chapters or books.
+The entire system is built on asyncio for high-performance concurrent operations, especially when processing multiple chapters or books. The CLI entry point creates its own event loop in `main()`.
+
+### Platform Patches
+- **Windows**: DLL patches for Chrome are applied via `patch_windows()` in `__main__.py`
+- **pyppeteer**: `patch_generateRequestHash()` removes Origin header to bypass CORS issues
 
 ### Cache System
 - Cookies are stored in `cache/cookie.txt`
@@ -82,16 +107,17 @@ The entire system is built on asyncio for high-performance concurrent operations
 - Images are downloaded to `cache/<book-id>/images/`
 
 ### Browser Anti-detection
-The tool implements several anti-detection mechanisms:
+The tool implements several anti-detection mechanisms in `webpage.py`:
 - Removes webdriver navigator property
-- Sets realistic user agent
+- Sets realistic user agent (optional via `--mock-user-agent`)
 - Handles request headers properly
-- Supports proxy configuration
+- Supports proxy configuration via `--proxy-server`
 
 ## Book ID Format
 
 - Single book: Direct 32-character ID (e.g., `08232ac0720befa90825d88`)
 - Book list: Contains underscore separator (e.g., `12345_67890`)
+  - When a book list ID is detected, the tool automatically fetches all book IDs from the list
 
 ## Output Structure
 
@@ -106,14 +132,14 @@ output/
 ## Error Handling
 
 The tool includes retry mechanisms for:
-- Network errors (exponential backoff)
-- Browser crashes (automatic restart)
-- Chapter loading failures (retry with new browser instance)
+- Network errors (exponential backoff via load interval)
+- Browser crashes (automatic restart in the export loop)
+- Chapter loading failures (`LoadChapterFailedError` triggers retry with new browser)
 
 ## Platform-specific Notes
 
-- **Windows**: Uses PNG format for PDF images, includes DLL patches
-- **Linux**: Required for MOBI conversion
+- **Windows**: Uses PNG format for PDF images, includes DLL patches for Chrome
+- **Linux**: Required for MOBI conversion (uses `ebook-convert` command)
 - **macOS**: Full support for all features
 
 ## Security Considerations
@@ -121,5 +147,5 @@ The tool includes retry mechanisms for:
 The tool is designed for personal use only and includes:
 - No data collection or transmission
 - Local-only processing
-- Respect for rate limits
+- Respect for rate limits (configurable via `--load-interval`)
 - Compliance with terms of service

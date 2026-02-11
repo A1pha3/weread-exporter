@@ -9,7 +9,7 @@ def patch_windows():
     bin_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "bin", "win32")
     os.environ["PATH"] += ";" + bin_path
     if hasattr(os, "add_dll_directory"):
-        os.add_dll_directory(bin_path)
+        os.add_dll_directory(bin_path)  # type: ignore[attr-defined]
 
 
 def patch_generateRequestHash():
