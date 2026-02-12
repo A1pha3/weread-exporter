@@ -79,11 +79,21 @@ async def get_book_list(book_list_id: str):
             if pos < 0:
                 break
         pos = html.find('"', pos)
+        if pos < 0:
+            break
         pos1 = html.find('"', pos + 1)
+        if pos1 < 0:
+            break
         book_id = html[pos + 1 : pos1]
         pos = html.find("title:", pos)
+        if pos < 0:
+            break
         pos = html.find('"', pos)
+        if pos < 0:
+            break
         pos1 = html.find('"', pos + 1)
+        if pos1 < 0:
+            break
         title = html[pos + 1 : pos1]
         book_list.append({"id": wr_hash(book_id), "title": title})
     return book_list
@@ -104,11 +114,21 @@ async def get_book_list_full(book_list_id: str):
             if pos < 0:
                 break
         pos = html.find('"', pos)
+        if pos < 0:
+            break
         pos1 = html.find('"', pos + 1)
+        if pos1 < 0:
+            break
         original_id = html[pos + 1 : pos1]
         pos = html.find("title:", pos)
+        if pos < 0:
+            break
         pos = html.find('"', pos)
+        if pos < 0:
+            break
         pos1 = html.find('"', pos + 1)
+        if pos1 < 0:
+            break
         title = html[pos + 1 : pos1]
         results.append(
             {"original_id": original_id, "hashed_id": wr_hash(original_id), "title": title}

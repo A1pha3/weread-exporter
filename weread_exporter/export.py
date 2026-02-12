@@ -367,12 +367,12 @@ class WeReadExporter(object):
                     "Load chapter %s failed" % chapter["title"]
                 )
 
-            markdown = await self._page.get_markdown()
+            markdown_content = await self._page.get_markdown()
             logging.info(
                 "[%s] Export chapter %s to %s"
                 % (self.__class__.__name__, chapter["title"], file_path)
             )
             with open(file_path, "wb") as fp:
-                fp.write(markdown.encode("utf-8", errors="replace"))
+                fp.write(markdown_content.encode("utf-8", errors="replace"))
 
             await asyncio.sleep(interval)

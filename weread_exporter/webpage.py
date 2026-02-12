@@ -80,8 +80,10 @@ class WeReadWebPage(object):
         await self._page.goto(self.__class__.root_url)
         try:
             await self.wait_for_avatar(timeout=15)
-        except Exception:
-            pass
+        except Exception as ex:
+            logging.warning(
+                "[%s] Failed to wait for avatar: %s" % (self.__class__.__name__, str(ex))
+            )
 
         async def _collect():
             script = """
@@ -121,8 +123,10 @@ class WeReadWebPage(object):
             )
             await asyncio.sleep(1)
             result = await _collect()
-        except Exception:
-            pass
+        except Exception as ex:
+            logging.warning(
+                "[%s] Failed to collect booklists: %s" % (self.__class__.__name__, str(ex))
+            )
         return result or []
 
     async def get_user_info(self):
