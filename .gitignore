@@ -9,3 +9,6 @@ output/
 *.egg-info/
 .venv/
 .trae/
+.DS_Store
+*.jpg
+*.html
