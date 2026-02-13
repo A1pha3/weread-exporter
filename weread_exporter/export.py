@@ -8,6 +8,7 @@ from typing import Any, cast
 
 import bs4
 import markdown
+import pyppeteer
 
 from ebooklib import epub
 
@@ -352,10 +353,9 @@ class WeReadExporter(object):
                             time.time() - time0,
                         )
                     )
-                    raise utils.LoadChapterFailedError()
                 except KeyboardInterrupt as ex:
                     raise ex
-                except (asyncio.TimeoutError, RuntimeError) as e:
+                except (RuntimeError, pyppeteer.errors.PyppeteerError) as e:
                     logging.error(
                         "[%s] Failed to navigate to chapter %s: %s"
                         % (self.__class__.__name__, chapter["title"], str(e))

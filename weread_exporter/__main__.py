@@ -177,51 +177,60 @@ async def async_main():
         await exporter.pre_process_markdown()
         title = await exporter.get_book_title()
         title = utils.format_filename(title)
+
         if "epub" in args.output_format:
-            save_path = os.path.join(output_dir, "%s.epub" % title)
-            if os.path.isfile(save_path):
-                logging.info("File %s exist, ignore export" % save_path)
+            _save_path = os.path.join(output_dir, "%s.epub" % title)
+            if os.path.isfile(_save_path):
+                logging.info("File %s exist, ignore export" % _save_path)
             else:
-                await exporter.markdown_to_epub(save_path, extra_css=extra_css)
-                logging.info("Save file %s complete" % save_path)
+                await exporter.markdown_to_epub(_save_path, extra_css=extra_css)
+                logging.info("Save file %s complete" % _save_path)
+
+        if "md" in args.output_format:
+            _save_path = os.path.join(output_dir, "%s.md" % title)
+            if os.path.isfile(_save_path):
+                logging.info("File %s exist, ignore export" % _save_path)
+            else:
+                await exporter.merge_markdown(_save_path)
+                logging.info("Save file %s complete" % _save_path)
 
         if "pdf" in args.output_format:
-            save_path = os.path.join(output_dir, "%s.pdf" % title)
-            if os.path.isfile(save_path):
-                logging.info("File %s exist, ignore export" % save_path)
+            _save_path = os.path.join(output_dir, "%s.pdf" % title)
+            if os.path.isfile(_save_path):
+                logging.info("File %s exist, ignore export" % _save_path)
             else:
                 image_format = "jpg"
                 if sys.platform == "win32":
                     image_format = "png"
                 await exporter.markdown_to_pdf(
-                    save_path,
+                    _save_path,
                     extra_css=extra_css,
                     image_format=image_format,
                 )
-                logging.info("Save file %s complete" % save_path)
+                logging.info("Save file %s complete" % _save_path)
 
         if "mobi" in args.output_format:
             if sys.platform != "linux":
                 logging.error("Only linux system supported to export mobi format")
                 return -1
             epub_path = os.path.join(output_dir, "%s.epub" % title)
-            save_path = os.path.join(output_dir, "%s.mobi" % title)
-            if os.path.isfile(save_path):
-                logging.info("File %s exist, ignore export" % save_path)
+            _save_path = os.path.join(output_dir, "%s.mobi" % title)
+            if os.path.isfile(_save_path):
+                logging.info("File %s exist, ignore export" % _save_path)
             else:
-                await exporter.epub_to_mobi(epub_path, save_path)
-                if not os.path.isfile(save_path):
+                await exporter.epub_to_mobi(epub_path, _save_path)
+                if not os.path.isfile(_save_path):
                     logging.warning("Create mobi file failed")
                     continue
-                logging.info("Save file %s complete" % save_path)
+                logging.info("Save file %s complete" % _save_path)
 
         if "txt" in args.output_format:
-            save_path = os.path.join(output_dir, "%s.txt" % title)
-            if os.path.isfile(save_path):
-                logging.info("File %s exist, ignore export" % save_path)
+            _save_path = os.path.join(output_dir, "%s.txt" % title)
+            if os.path.isfile(_save_path):
+                logging.info("File %s exist, ignore export" % _save_path)
             else:
-                await exporter.markdown_to_txt(save_path)
-                logging.info("Save file %s complete" % save_path)
+                await exporter.markdown_to_txt(_save_path)
+                logging.info("Save file %s complete" % _save_path)
     return 0
 
 

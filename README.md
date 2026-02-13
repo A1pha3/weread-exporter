@@ -14,26 +14,39 @@
 
 ## 📖 文档
 
-完整的文档体系已重新整理，请访问 [docs目录](./docs/) 获取详细指南：
+**📚 完整文档体系**：请访问 [docs/README.md](./docs/README.md) 获取三层学习路径的完整指南。
 
-### 快速开始
-- [📚 文档中心](./docs/README.md) - 完整文档索引
-- [🚀 项目介绍](./docs/introduction.md) - 技术原理和特性
-- [⚡ 安装指南](./docs/installation.md) - 环境配置和安装
-- [🎯 使用教程](./docs/usage.md) - 基础使用方法
+### 快速开始（推荐）
+- [📚 文档中心](./docs/README.md) - 三条学习路径完整索引
+- [🚀 快速开始指南](./docs/user-guide/level1-getting-started.md) - 30分钟完成第一个导出
 
-### 深入使用
-- [🔧 高级功能](./docs/advanced.md) - 高级配置和自定义
-- [📚 批量处理](./docs/batch.md) - 批量导出指南
-- [🎨 样式定制](./docs/styling.md) - 自定义样式和主题
+### 用户路径
+| 级别 | 内容 | 预计时间 |
+|------|------|----------|
+| ⭐ | [安装与配置](./docs/user-guide/level1-getting-started.md) | 30分钟 |
+| ⭐⭐ | [核心功能](./docs/user-guide/level2-core-features.md) | 1-2小时 |
+| ⭐⭐⭐ | [高级使用](./docs/user-guide/level3-advanced-usage.md) | 2-3小时 |
+| ⭐⭐⭐⭐ | [批量与自动化](./docs/user-guide/level4-automation.md) | 3-4小时 |
 
-### 开发指南
-- [🏗️ 架构解析](./docs/architecture.md) - 技术架构和实现
-- [💻 API文档](./docs/api.md) - 完整API接口说明
-- [🔬 开发指南](./docs/development.md) - 开发环境和扩展
+### 开发者路径
+| 级别 | 内容 | 预计时间 |
+|------|------|----------|
+| ⭐ | [项目概览](./docs/developer-guide/level1-overview.md) | 1小时 |
+| ⭐⭐ | [模块详解](./docs/developer-guide/level2-modules.md) | 2-3小时 |
+| ⭐⭐⭐ | [开发指南](./docs/developer-guide/level3-development.md) | 2-3小时 |
+| ⭐⭐⭐⭐ | [贡献指南](./docs/developer-guide/level4-contributing.md) | 3-4小时 |
 
-### 故障排除
-- [🔧 故障排除](./docs/troubleshooting.md) - 问题诊断和解决
+### 进阶路径
+| 级别 | 内容 | 预计时间 |
+|------|------|----------|
+| ⭐ | [架构设计](./docs/mastery-guide/level1-architecture.md) | 1-2小时 |
+| ⭐⭐ | [设计模式](./docs/mastery-guide/level2-patterns.md) | 2-3小时 |
+| ⭐⭐⭐ | [深度技术](./docs/mastery-guide/level3-deep-dive.md) | 3-4小时 |
+| ⭐⭐⭐⭐ | [架构决策](./docs/mastery-guide/level4-decisions.md) | 4-5小时 |
+
+### 辅助资源
+- [📖 术语表](./docs/glossary.md) - 技术术语中英对照
+- [🔧 快速参考文档](./docs/introduction.md) - 旧版简要介绍
 
 ## 🚀 快速开始
 
