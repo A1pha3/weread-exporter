@@ -22,6 +22,7 @@ class WeReadWebPage(object):
 
     root_url = "https://weread.qq.com"
     window_size = (1920, 1080)
+    default_avatar_suffix = "Default.svg"
 
     def __init__(self, book_id, cookie_path=None, webcache_path=None):
         self._book_id = book_id
@@ -401,11 +402,45 @@ class WeReadWebPage(object):
             avatar_url = await self._page.evaluate(
                 "document.querySelector('img.wr_avatar_img') && document.querySelector('img.wr_avatar_img').getAttribute('src');"
             )
-            if avatar_url is None or not avatar_url.endswith("Default.svg"):
+            if avatar_url and not avatar_url.endswith(self.__class__.default_avatar_suffix):
                 break
             await asyncio.sleep(5)
         else:
             raise RuntimeError("Wait for avatar timeout")
+
+    async def _is_login_confirmed(self):
+        await self._update_cookie()
+        if self._cookie.get("wr_vid"):
+            return True
+
+        login_state = await self._page.evaluate(
+            """
+            () => {
+              const avatar = document.querySelector('img.wr_avatar_img');
+              const avatarUrl = avatar ? (avatar.getAttribute('src') || '') : '';
+              const loginNodes = Array.from(document.querySelectorAll('button, a, span, div'));
+              const hasLoginText = loginNodes.some((node) => {
+                const txt = (node && node.innerText ? node.innerText : '').trim();
+                return txt === '登录' || txt.includes('扫码登录');
+              });
+              return {
+                avatarUrl,
+                hasLoginText,
+              };
+            }
+            """
+        )
+
+        avatar_url = login_state.get("avatarUrl") if isinstance(login_state, dict) else ""
+        has_login_text = (
+            bool(login_state.get("hasLoginText")) if isinstance(login_state, dict) else True
+        )
+
+        if avatar_url and not avatar_url.endswith(self.__class__.default_avatar_suffix):
+            return True
+        if not has_login_text and self._cookie:
+            return True
+        return False
 
     async def _inject_cookie(self):
         for key in self._cookie:
@@ -427,6 +462,7 @@ class WeReadWebPage(object):
             "button.navBar_link_Login",
             "div.readerTopBar_right button.actionItem",
         ]
+        clicked = False
         for selector in selectors:
             script = (
                 "var elem = document.querySelector('%s'); elem && elem.innerText"
@@ -438,21 +474,22 @@ class WeReadWebPage(object):
             if "登录" not in result:
                 continue
             await self._page.click(selector)
-            script = "document.querySelector('div.menu_container img.wr_avatar_img')"
-            time0 = time.time()
-            while time.time() - time0 < 300:
-                logging.info("[%s] Waiting for login" % self.__class__.__name__)
-                await asyncio.sleep(10)
-                result = await self._page.evaluate(script)
-                if not result:
-                    continue
+            clicked = True
+            break
+
+        if clicked:
+            await asyncio.sleep(1)
+
+        time0 = time.time()
+        while time.time() - time0 < 300:
+            logging.info("[%s] Waiting for login" % self.__class__.__name__)
+            if await self._is_login_confirmed():
                 logging.info("[%s] Login success" % self.__class__.__name__)
-                await self._update_cookie()
                 self._save_cookie()
                 return True
-            else:
-                raise RuntimeError("Login timeout")
-        return False
+            await asyncio.sleep(2)
+
+        raise RuntimeError("Login timeout")
 
     async def _get_from_cache_or_server(self, url, headers=None):
         u = urllib.parse.urlparse(url)
