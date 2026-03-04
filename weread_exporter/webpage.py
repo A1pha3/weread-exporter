@@ -87,7 +87,7 @@ class WeReadWebPage(object):
             )
 
         async def _collect():
-            script = """
+            script = r"""
             () => {
               const anchors = Array.from(document.querySelectorAll('a'));
               const res = [];
@@ -399,19 +399,24 @@ class WeReadWebPage(object):
     async def wait_for_avatar(self, timeout=30):
         time0 = time.time()
         while time.time() - time0 < timeout:
+            if await self._is_login_confirmed(log_on_success=True):
+                return
             avatar_url = await self._page.evaluate(
                 "document.querySelector('img.wr_avatar_img') && document.querySelector('img.wr_avatar_img').getAttribute('src');"
             )
             if avatar_url and not avatar_url.endswith(self.__class__.default_avatar_suffix):
-                break
+                return
             await asyncio.sleep(5)
-        else:
-            raise RuntimeError("Wait for avatar timeout")
 
-    async def _is_login_confirmed(self):
+        state = await self._collect_login_state()
+        logging.warning(
+            "[%s] wait_for_avatar timeout, state=%s"
+            % (self.__class__.__name__, state)
+        )
+        raise RuntimeError("Wait for avatar timeout")
+
+    async def _collect_login_state(self):
         await self._update_cookie()
-        if self._cookie.get("wr_vid"):
-            return True
 
         login_state = await self._page.evaluate(
             """
@@ -435,15 +440,50 @@ class WeReadWebPage(object):
         has_login_text = (
             bool(login_state.get("hasLoginText")) if isinstance(login_state, dict) else True
         )
+        return {
+            "has_wr_vid": bool(self._cookie.get("wr_vid")),
+            "cookie_keys": sorted(list(self._cookie.keys())),
+            "avatar_url": avatar_url,
+            "has_login_text": has_login_text,
+        }
 
+    async def _is_login_confirmed(self, log_on_success=False):
+        state = await self._collect_login_state()
+
+        if state["has_wr_vid"]:
+            if log_on_success:
+                logging.info(
+                    "[%s] Login confirmed by cookie(wr_vid)"
+                    % self.__class__.__name__
+                )
+            return True
+
+        avatar_url = state["avatar_url"]
+        has_login_text = state["has_login_text"]
         if avatar_url and not avatar_url.endswith(self.__class__.default_avatar_suffix):
+            if log_on_success:
+                logging.info(
+                    "[%s] Login confirmed by avatar_url"
+                    % self.__class__.__name__
+                )
             return True
         if not has_login_text and self._cookie:
+            if log_on_success:
+                logging.info(
+                    "[%s] Login confirmed by page(no login text)+cookie"
+                    % self.__class__.__name__
+                )
             return True
         return False
 
     async def _inject_cookie(self):
         for key in self._cookie:
+            if not self._cookie[key]:
+                logging.info(
+                    "[%s] Skip empty cookie %s"
+                    % (self.__class__.__name__, key)
+                )
+                continue
             logging.info(
                 "[%s] Inject cookie %s=%s"
                 % (self.__class__.__name__, key, self._cookie[key])
@@ -483,11 +523,16 @@ class WeReadWebPage(object):
         time0 = time.time()
         while time.time() - time0 < 300:
             logging.info("[%s] Waiting for login" % self.__class__.__name__)
-            if await self._is_login_confirmed():
+            if await self._is_login_confirmed(log_on_success=True):
                 logging.info("[%s] Login success" % self.__class__.__name__)
                 self._save_cookie()
                 return True
             await asyncio.sleep(2)
+
+        state = await self._collect_login_state()
+        logging.warning(
+            "[%s] Login timeout, state=%s" % (self.__class__.__name__, state)
+        )
 
         raise RuntimeError("Login timeout")
 
